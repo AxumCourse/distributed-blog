@@ -1521,6 +1521,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "topic-srv"
+version = "0.1.0"
+dependencies = [
+ "blog-proto",
+ "prost",
+ "prost-types",
+ "sqlx",
+ "tokio",
+ "tonic",
+]
+
+[[package]]
 name = "tower"
 version = "0.4.13"
 source = "registry+https://github.com/rust-lang/crates.io-index"
