@@ -5,6 +5,7 @@ use blog_proto::{
     EditTopicRequest, GetTopicReply, GetTopicRequest, ListTopicReply, ListTopicRequest,
     ToggleTopicReply, ToggleTopicRequest,
 };
+use chrono::{DateTime, Datelike, Local, Timelike};
 use sqlx::{Executor, PgPool, Row};
 
 pub struct Topic {
@@ -94,7 +95,36 @@ impl TopicService for Topic {
         &self,
         request: tonic::Request<GetTopicRequest>,
     ) -> Result<tonic::Response<GetTopicReply>, tonic::Status> {
-        unimplemented!()
+        let GetTopicRequest { id, is_del } = request.into_inner();
+        let query = match is_del {
+            Some(is_del) => sqlx::query("SELECT id,title,content,summary,is_del,category_id,dateline,hit FROM topics WHERE id=$1 AND is_del=$2")
+            .bind(id).bind(is_del),
+            None => sqlx::query("SELECT id,title,content,summary,is_del,category_id,dateline,hit FROM topics WHERE id=$1")
+            .bind(id),
+        };
+        let row = query
+            .fetch_optional(&*self.pool)
+            .await
+            .map_err(|err| tonic::Status::internal(err.to_string()))?;
+        if row.is_none() {
+            return Err(tonic::Status::not_found("不存在的文章"));
+        }
+        let row = row.unwrap();
+        let dt: DateTime<Local> = row.get("dateline");
+        let dateline = dt_conver(&dt);
+
+        Ok(tonic::Response::new(GetTopicReply {
+            topic: Some(blog_proto::Topic {
+                id: row.get("id"),
+                title: row.get("title"),
+                category_id: row.get("category_id"),
+                content: row.get("content"),
+                summary: row.get("summary"),
+                hit: row.get("hit"),
+                is_del: row.get("is_del"),
+                dateline,
+            }),
+        }))
     }
     async fn list_topic(
         &self,
@@ -109,4 +139,19 @@ fn get_summary(content: &str) -> String {
         return String::from(content);
     }
     content.chars().into_iter().take(255).collect()
+}
+
+fn dt_conver(dt: &DateTime<Local>) -> Option<prost_types::Timestamp> {
+    if let Ok(dt) = prost_types::Timestamp::date_time(
+        dt.year().into(),
+        dt.month() as u8,
+        dt.day() as u8,
+        dt.hour() as u8,
+        dt.minute() as u8,
+        dt.second() as u8,
+    ) {
+        Some(dt)
+    } else {
+        None
+    }
 }

@@ -1,6 +1,6 @@
 use blog_proto::{
     topic_service_client::TopicServiceClient, CreateTopicRequest, EditTopicRequest,
-    ToggleTopicRequest,
+    GetTopicRequest, ToggleTopicRequest,
 };
 
 #[tokio::test]
@@ -45,4 +45,19 @@ async fn test_toggle_topic() {
     let resp = client.toggle_topic(request).await.unwrap();
     let reply = resp.into_inner();
     assert!(reply.id == 1);
+}
+
+#[tokio::test]
+async fn test_get_topic() {
+    let mut client = TopicServiceClient::connect("http://127.0.0.1:29527")
+        .await
+        .unwrap();
+    let request = tonic::Request::new(GetTopicRequest {
+        id: 1.into(),
+        is_del: None,
+    });
+    let resp = client.get_topic(request).await.unwrap();
+    let reply = resp.into_inner();
+    assert!(reply.topic.is_some());
+    println!("{:?}", reply.topic.unwrap().dateline);
 }
