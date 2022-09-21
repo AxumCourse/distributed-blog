@@ -6,7 +6,7 @@ use blog_proto::{
     EditCategoryReply, EditCategoryRequest, GetCategoryReply, GetCategoryRequest,
     ListCategoryReply, ListCategoryRequest, ToggleCategoryReply, ToggleCategoryRequest,
 };
-use sqlx::{PgPool, Row};
+use sqlx::{ PgPool, Row};
 
 pub struct Category {
     pool: Arc<PgPool>,
@@ -126,7 +126,42 @@ impl CategoryService for Category {
         &self,
         request: tonic::Request<ListCategoryRequest>,
     ) -> Result<tonic::Response<ListCategoryReply>, tonic::Status> {
-        unimplemented!()
+        let ListCategoryRequest { name, is_del } = request.into_inner();
+        let query = match name {
+            Some(name) => {
+                let name = format!("%{}%", name);
+             match is_del { 
+                Some(is_del) => {
+                    sqlx::query("SELECT id,name,is_del FROM categories WHERE name ILIKE $1 AND is_del=$2 ORDER BY id")
+                    .bind(name.clone())
+                        .bind(is_del)
+                }
+                None =>  sqlx::query("SELECT id,name,is_del FROM categories WHERE name ILIKE $1  ORDER BY id")
+                    .bind(name),
+           
+             } },
+            None => match is_del {
+                Some(is_del) => {
+                    sqlx::query("SELECT id,name,is_del FROM categories WHERE is_del=$1 ORDER BY id")
+                        .bind(is_del)
+                }
+                None => sqlx::query("SELECT id,name,is_del FROM categories ORDER BY id"),
+            },
+        };
+        let rows = query.fetch_all(&*self.pool).await.map_err(|err|tonic::Status::internal(err.to_string()))?;
+        if rows.is_empty() {
+            return Err(tonic::Status::not_found("没有符合条件的分类"));
+        }
+        let mut categories = Vec::with_capacity(rows.len());
+        for row in rows {
+            categories.push(blog_proto::Category {
+                id: row.get("id"),
+                name: row.get("name"),
+                is_del: row.get("is_del"),
+            });
+        }
+        let reply = ListCategoryReply { categories };
+        Ok(tonic::Response::new(reply))
     }
     async fn toggle_category(
         &self,

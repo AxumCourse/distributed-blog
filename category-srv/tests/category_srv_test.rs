@@ -1,6 +1,6 @@
 use blog_proto::{
     category_service_client::CategoryServiceClient, CreateCategoryRequest, EditCategoryRequest,
-    GetCategoryRequest, ToggleCategoryRequest,
+    GetCategoryRequest, ListCategoryRequest, ToggleCategoryRequest,
 };
 
 #[tokio::test]
@@ -88,4 +88,18 @@ async fn test_delete_notexists_category() {
     let request = tonic::Request::new(ToggleCategoryRequest { id: 100 });
     let reply = client.toggle_category(request).await;
     assert!(reply.is_err());
+}
+
+#[tokio::test]
+async fn test_list_category() {
+    let mut client = CategoryServiceClient::connect("http://127.0.0.1:19527")
+        .await
+        .unwrap();
+    let request = tonic::Request::new(ListCategoryRequest {
+        name: Some("AXUM.RS".to_string()),
+        is_del: Some(false),
+    });
+    let reply = client.list_category(request).await.unwrap();
+    let reply = reply.into_inner();
+    assert!(reply.categories.len() > 0);
 }
