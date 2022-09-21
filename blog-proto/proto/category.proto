@@ -47,7 +47,7 @@ message CategoryExistsReply { bool exists = 1; }
 
 // -- 分类详情
 message GetCategoryRequest {
-  uint32 id = 1;
+  int32 id = 1;
   optional bool is_del = 2;
 }
 message GetCategoryReply { optional Category category = 1; }

@@ -98,7 +98,30 @@ impl CategoryService for Category {
         &self,
         request: tonic::Request<GetCategoryRequest>,
     ) -> Result<tonic::Response<GetCategoryReply>, tonic::Status> {
-        unimplemented!()
+        let GetCategoryRequest { id, is_del } = request.into_inner();
+        let query = match is_del {
+            Some(is_del) => {
+                sqlx::query("SELECT id,name,is_del FROM categories WHERE id=$1 AND is_del=$2")
+                    .bind(id)
+                    .bind(is_del)
+            }
+            None => sqlx::query("SELECT id,name,is_del FROM categories WHERE id=$1").bind(id),
+        };
+        let row = query
+            .fetch_optional(&*self.pool)
+            .await
+            .map_err(|err| tonic::Status::internal(err.to_string()))?;
+        let reply = match row {
+            Some(row) => GetCategoryReply {
+                category: Some(blog_proto::Category {
+                    id: row.get("id"),
+                    name: row.get("name"),
+                    is_del: row.get("is_del"),
+                }),
+            },
+            None => GetCategoryReply { category: None },
+        };
+        Ok(tonic::Response::new(reply))
     }
     async fn list_category(
         &self,

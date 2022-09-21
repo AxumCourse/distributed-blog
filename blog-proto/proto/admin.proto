@@ -53,7 +53,7 @@ message GetAdminRequest {
     string password = 2;
   }
   message ById {
-    uint32 id = 1;
+    int32 id = 1;
     optional bool is_del = 2;
   }
   oneof condition {

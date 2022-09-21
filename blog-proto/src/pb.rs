@@ -85,8 +85,8 @@ pub struct CategoryExistsReply {
 /// -- 分类详情
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct GetCategoryRequest {
-    #[prost(uint32, tag="1")]
-    pub id: u32,
+    #[prost(int32, tag="1")]
+    pub id: i32,
     #[prost(bool, optional, tag="2")]
     pub is_del: ::core::option::Option<bool>,
 }
@@ -773,8 +773,8 @@ pub mod get_admin_request {
     }
     #[derive(Clone, PartialEq, ::prost::Message)]
     pub struct ById {
-        #[prost(uint32, tag="1")]
-        pub id: u32,
+        #[prost(int32, tag="1")]
+        pub id: i32,
         #[prost(bool, optional, tag="2")]
         pub is_del: ::core::option::Option<bool>,
     }
@@ -1459,8 +1459,8 @@ pub struct ToggleTopicReply {
 /// -- 获取文章详情
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct GetTopicRequest {
-    #[prost(uint32, tag="1")]
-    pub id: u32,
+    #[prost(int32, tag="1")]
+    pub id: i32,
     #[prost(bool, optional, tag="2")]
     pub is_del: ::core::option::Option<bool>,
 }
