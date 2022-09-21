@@ -6,8 +6,7 @@ use blog_proto::{
     EditCategoryReply, EditCategoryRequest, GetCategoryReply, GetCategoryRequest,
     ListCategoryReply, ListCategoryRequest, ToggleCategoryReply, ToggleCategoryRequest,
 };
-use prost::bytes::Buf;
-use sqlx::{Executor, PgPool, Row};
+use sqlx::{PgPool, Row};
 
 pub struct Category {
     pool: Arc<PgPool>,
@@ -133,6 +132,19 @@ impl CategoryService for Category {
         &self,
         request: tonic::Request<ToggleCategoryRequest>,
     ) -> Result<tonic::Response<ToggleCategoryReply>, tonic::Status> {
-        unimplemented!()
+        let ToggleCategoryRequest { id } = request.into_inner();
+        let row =
+            sqlx::query("UPDATE categories SET is_del=(NOT is_del) WHERE id=$1 RETURNING is_del")
+                .bind(id)
+                .fetch_optional(&*self.pool)
+                .await
+                .map_err(|err| tonic::Status::internal(err.to_string()))?;
+        if let Some(row) = row {
+            return Ok(tonic::Response::new(ToggleCategoryReply {
+                id,
+                is_del: row.get(0),
+            }));
+        }
+        Err(tonic::Status::not_found("不存在的分类"))
     }
 }

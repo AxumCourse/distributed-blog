@@ -1,6 +1,6 @@
 use blog_proto::{
     category_service_client::CategoryServiceClient, CreateCategoryRequest, EditCategoryRequest,
-    GetCategoryRequest,
+    GetCategoryRequest, ToggleCategoryRequest,
 };
 
 #[tokio::test]
@@ -55,4 +55,37 @@ async fn test_get_notexists_category() {
     let reply = client.get_category(request).await.unwrap();
     let reply = reply.into_inner();
     assert!(reply.category.is_none());
+}
+
+#[tokio::test]
+async fn test_delete_category() {
+    let mut client = CategoryServiceClient::connect("http://127.0.0.1:19527")
+        .await
+        .unwrap();
+    let request = tonic::Request::new(ToggleCategoryRequest { id: 1 });
+    let reply = client.toggle_category(request).await.unwrap();
+    let reply = reply.into_inner();
+    assert!(reply.id == 1);
+    assert!(reply.is_del);
+}
+#[tokio::test]
+async fn test_undelete_category() {
+    let mut client = CategoryServiceClient::connect("http://127.0.0.1:19527")
+        .await
+        .unwrap();
+    let request = tonic::Request::new(ToggleCategoryRequest { id: 1 });
+    let reply = client.toggle_category(request).await.unwrap();
+    let reply = reply.into_inner();
+    assert!(reply.id == 1);
+    assert!(reply.is_del == false);
+}
+
+#[tokio::test]
+async fn test_delete_notexists_category() {
+    let mut client = CategoryServiceClient::connect("http://127.0.0.1:19527")
+        .await
+        .unwrap();
+    let request = tonic::Request::new(ToggleCategoryRequest { id: 100 });
+    let reply = client.toggle_category(request).await;
+    assert!(reply.is_err());
 }
