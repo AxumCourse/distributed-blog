@@ -70,7 +70,29 @@ impl CategoryService for Category {
         &self,
         request: tonic::Request<EditCategoryRequest>,
     ) -> Result<tonic::Response<EditCategoryReply>, tonic::Status> {
-        unimplemented!()
+        let EditCategoryRequest { id, name } = request.into_inner();
+        let row = sqlx::query("SELECT COUNT(*) FROM categories WHERE name=$1 AND id<>$2")
+            .bind(&name)
+            .bind(id)
+            .fetch_one(&*self.pool)
+            .await
+            .map_err(|err| tonic::Status::internal(err.to_string()))?;
+        let count: i64 = row.get(0);
+        if count > 0i64 {
+            return Err(tonic::Status::already_exists("分类已存在"));
+        }
+        let rows_affected = sqlx::query("UPDATE categories SET name=$1 WHERE id=$2")
+            .bind(&name)
+            .bind(id)
+            .execute(&*self.pool)
+            .await
+            .map_err(|err| tonic::Status::internal(err.to_string()))?
+            .rows_affected();
+        let reply = EditCategoryReply {
+            id,
+            ok: rows_affected > 0,
+        };
+        Ok(tonic::Response::new(reply))
     }
     async fn get_category(
         &self,
