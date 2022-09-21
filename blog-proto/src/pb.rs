@@ -1452,9 +1452,15 @@ pub struct ListTopicReply {
 /// -- 删除/恢复文章
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ToggleTopicRequest {
+    #[prost(int32, tag="1")]
+    pub id: i32,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ToggleTopicReply {
+    #[prost(int32, tag="1")]
+    pub id: i32,
+    #[prost(bool, tag="2")]
+    pub is_del: bool,
 }
 /// -- 获取文章详情
 #[derive(Clone, PartialEq, ::prost::Message)]

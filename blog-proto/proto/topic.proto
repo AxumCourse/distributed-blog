@@ -57,8 +57,11 @@ message ListTopicReply {
 }
 
 // -- 删除/恢复文章
-message ToggleTopicRequest {}
-message ToggleTopicReply {}
+message ToggleTopicRequest { int32 id = 1; }
+message ToggleTopicReply {
+  int32 id = 1;
+  bool is_del = 2;
+}
 
 // -- 获取文章详情
 message GetTopicRequest {
