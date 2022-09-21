@@ -50,7 +50,27 @@ impl TopicService for Topic {
         &self,
         request: tonic::Request<EditTopicRequest>,
     ) -> Result<tonic::Response<EditTopicReply>, tonic::Status> {
-        unimplemented!()
+        let r = request.into_inner();
+        let summary = match r.summary {
+            Some(s) => s,
+            None => get_summary(&r.content),
+        };
+        let rows_affected = sqlx::query(
+            "UPDATE topics SET title=$1,content=$2,summary=$3,category_id=$4 WHERE id=$5",
+        )
+        .bind(r.title)
+        .bind(r.content)
+        .bind(summary)
+        .bind(r.category_id)
+        .bind(r.id)
+        .execute(&*self.pool)
+        .await
+        .map_err(|err| tonic::Status::internal(err.to_string()))?
+        .rows_affected();
+        Ok(tonic::Response::new(EditTopicReply {
+            id: r.id,
+            ok: rows_affected > 0,
+        }))
     }
     async fn toggle_topic(
         &self,

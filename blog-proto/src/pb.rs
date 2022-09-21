@@ -1413,8 +1413,8 @@ pub struct EditTopicRequest {
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct EditTopicReply {
-    #[prost(int32, tag="1")]
-    pub id: i32,
+    #[prost(int64, tag="1")]
+    pub id: i64,
     #[prost(bool, tag="2")]
     pub ok: bool,
 }
@@ -1452,21 +1452,21 @@ pub struct ListTopicReply {
 /// -- 删除/恢复文章
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ToggleTopicRequest {
-    #[prost(int32, tag="1")]
-    pub id: i32,
+    #[prost(int64, tag="1")]
+    pub id: i64,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ToggleTopicReply {
-    #[prost(int32, tag="1")]
-    pub id: i32,
+    #[prost(int64, tag="1")]
+    pub id: i64,
     #[prost(bool, tag="2")]
     pub is_del: bool,
 }
 /// -- 获取文章详情
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct GetTopicRequest {
-    #[prost(int32, tag="1")]
-    pub id: i32,
+    #[prost(int64, tag="1")]
+    pub id: i64,
     #[prost(bool, optional, tag="2")]
     pub is_del: ::core::option::Option<bool>,
 }
