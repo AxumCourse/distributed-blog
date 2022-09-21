@@ -1,0 +1,81 @@
+syntax = "proto3";
+
+package pb;
+
+import "google/protobuf/timestamp.proto";
+
+message Topic {
+  int64 id = 1;
+  string title = 2;
+  int32 category_id = 3;
+  string summary = 4;
+  string content = 5;
+  int32 hit = 6;
+  bool is_del = 7;
+  google.protobuf.Timestamp dateline = 8;
+}
+
+message DatelineRange {
+  google.protobuf.Timestamp start = 1;
+  google.protobuf.Timestamp end = 2;
+}
+
+// -- 创建文章
+message CreateTopicRequest {
+  string title = 1;
+  int32 category_id = 2;
+  string content = 3;
+  optional string summary = 4; // 如果没有提供摘要，则自动从内容中截取
+}
+message CreateTopicReply { int64 id = 1; }
+
+// -- 修改文章
+message EditTopicRequest {
+  int64 id = 1;
+  string title = 2;
+  int32 category_id = 3;
+  optional string summary = 4; // 如果没有提供摘要，则自动从内容中截取
+  string content = 5;
+}
+message EditTopicReply {
+  int32 id = 1;
+  bool ok = 2;
+}
+
+// -- 文章列表
+message ListTopicRequest {
+  optional int32 page = 1;                   // 页码
+  optional int32 category_id = 2;            // 分类
+  optional string keyword = 3;               // 关键字
+  optional bool is_del = 4;                  // 是否删除
+  optional DatelineRange dateline_range = 5; // 时间区间
+}
+message ListTopicReply {
+  int32 page = 1;            // 当前页码
+  int32 page_size = 2;       // 每页条数
+  repeated Topic topics = 3; // 文章列表
+}
+
+// -- 删除/恢复文章
+message ToggleTopicRequest {}
+message ToggleTopicReply {}
+
+// -- 获取文章详情
+message GetTopicRequest {
+  uint32 id = 1;
+  optional bool is_del = 2;
+}
+message GetTopicReply { optional Topic topic = 1; }
+
+service TopicService {
+  // 创建文章
+  rpc CreateTopic(CreateTopicRequest) returns (CreateTopicReply);
+  // 修改文章
+  rpc EditTopic(EditTopicRequest) returns (EditTopicReply);
+  // 文章列表
+  rpc ListTopic(ListTopicRequest) returns (ListTopicReply);
+  // 删除/恢复文章
+  rpc ToggleTopic(ToggleTopicRequest) returns (ToggleTopicReply);
+  // 获取文章详情
+  rpc GetTopic(GetTopicRequest) returns (GetTopicReply);
+}

@@ -1,0 +1,79 @@
+syntax = "proto3";
+
+package pb;
+
+message Admin {
+  int32 id = 1;
+  string email = 2;
+  optional string password = 3;
+  bool is_del = 4;
+}
+
+// -- 添加管理员
+message CreateAdminRequest {
+  string email = 1;
+  string password = 2;
+}
+message CreateAdminReply { int32 id = 1; }
+// -- 管理员列表
+message ListAdminRequest {
+  optional string email = 1; // 根据EMAIL进行查找
+  optional bool is_del = 2;  // 是否删除
+}
+message ListAdminReply { repeated Admin admins = 1; }
+// -- 修改管理员
+message EditAdminRequest {
+  int32 id = 1;
+  string email = 2;
+  string password = 3;              // 现用密码
+  optional string new_password = 4; // 如果有密码，则修改密码
+}
+message EditAdminReply {
+  int32 id = 1;
+  bool ok = 2;
+}
+// -- 删除/恢复管理员
+message ToggleAdminRequest { int32 id = 1; }
+message ToggleAdminReply {
+  int32 id = 1;
+  bool is_del = 2;
+}
+// -- 管理员是否存在
+message AdminExistsRequest {
+  oneof condition {
+    string email = 1;
+    int32 id = 2;
+  }
+}
+message AdminExistsReply { bool exists = 1; }
+// -- 获取管理员
+message GetAdminRequest {
+  message ByAuth {
+    string email = 1;
+    string password = 2;
+  }
+  message ById {
+    uint32 id = 1;
+    optional bool is_del = 2;
+  }
+  oneof condition {
+    ById by_id = 1;     // 通过ID直接获取
+    ByAuth by_auth = 2; // 通过登录信息获取
+  }
+}
+message GetAdminReply { optional Admin admin = 1; }
+
+service AdminService {
+  // 添加管理员
+  rpc CreateAdmin(CreateAdminRequest) returns (CreateAdminReply);
+  // 管理员列表
+  rpc ListAdmin(ListAdminRequest) returns (ListAdminReply);
+  // 修改管理员
+  rpc EditAdmin(EditAdminRequest) returns (EditAdminReply);
+  // 删除/恢复管理员
+  rpc ToggleAdmin(ToggleAdminRequest) returns (ToggleAdminReply);
+  // 管理员是否存在
+  rpc AdminExists(AdminExistsRequest) returns (AdminExistsReply);
+  // 获取管理员
+  rpc GetAdmin(GetAdminRequest) returns (GetAdminReply);
+}
