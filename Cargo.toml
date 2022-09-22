@@ -3,4 +3,6 @@ members = [
    "category-srv",
    "blog-proto",
    "topic-srv",
+   "blog-frontend",
+   "blog-types",
 ]

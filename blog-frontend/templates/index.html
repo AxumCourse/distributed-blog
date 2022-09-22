@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>AXUM.RS博客</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css" />
+</head>
+
+<body>
+    <nav class="navbar is-info" role="navigation" aria-label="main navigation">
+        <div class="navbar-brand">
+            <a class="navbar-item" href="/">
+                AXUM.RS博客
+            </a>
+        </div>
+    </nav>
+    <div class="container mt-3">
+        <div class="columns">
+            <div class="column is-four-fifths">
+                {%for tpc in paginate.data %}
+                <!-- item -->
+                <div class="card mb-3">
+                    <div class="card-content">
+                        <h4 class="title is-4"><a href="/detail/{{tpc.id}}">{{tpc.title}}</a></h4>
+                        <div class="content">
+                            {{tpc.summary}}
+                        </div>
+                    </div>
+                    <footer class="card-footer">
+                        <div class="card-footer-item">{{tpc.dateline.timestamp|date}}</div>
+                        <a href="?category_id={{tpc.category_id}}" class="card-footer-item">{{tpc.category_name}}</a>
+                        <a href="/detail/{{tpc.id}}" class="card-footer-item">详情</a>
+                    </footer>
+                </div>
+                {%else%}
+                <div class="card mb-3">
+                    <div class="card-content">
+                        <div class="content">
+                            没有满足条件的记录
+                        </div>
+                    </div>
+
+                </div>
+                <!-- /item -->
+                {%endfor%}
+
+                {%if paginate.page_totoal > 0 %}
+                <!-- 分页-->
+                <nav class="pagination" role="navigation" aria-label="pagination">
+
+                    <ul class="pagination-list">
+                        {%for page_num in page_nums%}
+                        <li>
+
+                            <a class="pagination-link{%if page_num == params.page %} is-current{%endif%}"
+                                href="?page={{page_num}}&keyword={{params.keyword}}&category_id={{params.category_id}}">{{page_num+1}}</a>
+
+
+                        </li>
+                        {%endfor%}
+                    </ul>
+                </nav>
+                <!--/分页-->
+                {%endif%}
+            </div>
+            <div class="column">
+                <aside class="menu">
+                    <p class="menu-label">
+                        搜索
+                    </p>
+                    <form class="is-flex is-flex-direction-row is-justify-content-start is-align-items-center"
+                        method="get" action="/">
+                        <div class="control">
+                            <input class="input is-small" type="text" placeholder="输入关键字" name="keyword" />
+                        </div>
+                        <div class="control ml-1">
+                            <button class="button is-primary is-small">搜索</button>
+                        </div>
+                    </form>
+                    <p class="menu-label">
+                        分类
+                    </p>
+                    <ul class="menu-list">
+                        {% for cate in cate_list%}
+                        <li><a href="/?category_id={{cate.id}}">{{cate.name}}</a></li>
+                        {%endfor%}
+                    </ul>
+                </aside>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>
