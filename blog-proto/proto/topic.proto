@@ -53,7 +53,9 @@ message ListTopicRequest {
 message ListTopicReply {
   int32 page = 1;            // 当前页码
   int32 page_size = 2;       // 每页条数
-  repeated Topic topics = 3; // 文章列表
+  int64 page_totoal = 3;     // 总页数
+  int64 record_total = 4;    // 总记录数
+  repeated Topic topics = 5; // 文章列表
 }
 
 // -- 删除/恢复文章

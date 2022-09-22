@@ -1,6 +1,6 @@
 use blog_proto::{
-    topic_service_client::TopicServiceClient, CreateTopicRequest, EditTopicRequest,
-    GetTopicRequest, ToggleTopicRequest,
+    topic_service_client::TopicServiceClient, CreateTopicRequest, DatelineRange, EditTopicRequest,
+    GetTopicRequest, ListTopicRequest, ToggleTopicRequest,
 };
 
 #[tokio::test]
@@ -90,4 +90,50 @@ async fn test_get_topic_incr_hit() {
     let reply = resp.into_inner();
     assert!(reply.topic.is_some());
     assert!(reply.topic.unwrap().hit > 0);
+}
+
+#[tokio::test]
+async fn test_list_topic() {
+    let mut client = TopicServiceClient::connect("http://127.0.0.1:29527")
+        .await
+        .unwrap();
+
+    let request = tonic::Request::new(ListTopicRequest {
+        page: None,
+        category_id: None,
+        keyword: None,
+        is_del: None,
+        dateline_range: None,
+    });
+    let resp = client.list_topic(request).await.unwrap();
+    let reply = resp.into_inner();
+    println!("RT: {}, PT: {}", reply.record_total, reply.page_totoal);
+    for t in reply.topics {
+        println!("{:?}", t);
+    }
+}
+
+#[tokio::test]
+async fn test_args_list_topic() {
+    let mut client = TopicServiceClient::connect("http://127.0.0.1:29527")
+        .await
+        .unwrap();
+    let start = prost_types::Timestamp::date_time(2022, 9, 20, 0, 0, 0).unwrap();
+    let end = prost_types::Timestamp::date_time(2022, 9, 30, 23, 59, 59).unwrap();
+    let request = tonic::Request::new(ListTopicRequest {
+        page: Some(0),
+        category_id: Some(1),
+        keyword: Some("hello".into()),
+        is_del: None,
+        dateline_range: Some(DatelineRange {
+            start: Some(start),
+            end: Some(end),
+        }),
+    });
+    let resp = client.list_topic(request).await.unwrap();
+    let reply = resp.into_inner();
+    println!("RT: {}, PT: {}", reply.record_total, reply.page_totoal);
+    for t in reply.topics {
+        println!("{:?}", t);
+    }
 }

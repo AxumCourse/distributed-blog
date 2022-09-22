@@ -1,12 +1,12 @@
-use std::sync::Arc;
+use std::{ptr::NonNull, sync::Arc};
 
 use blog_proto::{
     topic_service_server::TopicService, CreateTopicReply, CreateTopicRequest, EditTopicReply,
     EditTopicRequest, GetTopicReply, GetTopicRequest, ListTopicReply, ListTopicRequest,
     ToggleTopicReply, ToggleTopicRequest,
 };
-use chrono::{DateTime, Datelike, Local, Timelike};
-use sqlx::{Executor, PgPool, Row};
+use chrono::{DateTime, Datelike, Local, TimeZone, Timelike};
+use sqlx::{Executor, PgPool, QueryBuilder, Row};
 
 pub struct Topic {
     pool: Arc<PgPool>,
@@ -144,7 +144,107 @@ impl TopicService for Topic {
         &self,
         request: tonic::Request<ListTopicRequest>,
     ) -> Result<tonic::Response<ListTopicReply>, tonic::Status> {
-        unimplemented!()
+        let ListTopicRequest {
+            page,
+            category_id,
+            keyword,
+            is_del,
+            dateline_range,
+        } = request.into_inner();
+        let page = page.unwrap_or(0);
+        let page_size = 30;
+        let offset = page * page_size;
+        let mut start = None;
+        let mut end = None;
+        if let Some(dr) = dateline_range {
+            start = tm_cover(dr.start);
+            end = tm_cover(dr.end);
+        }
+
+        let row = sqlx::query(
+            r#"
+            SELECT 
+                COUNT(*)
+            FROM 
+            topics
+            WHERE 1=1
+                AND ($1::int IS NULL OR category_id = $1::int)
+                AND ($2::text IS NULL OR title ILIKE CONCAT('%',$2::text,'%'))
+                AND ($3::boolean IS NULL OR is_del = $3::boolean)
+                AND (
+                    ($4::TIMESTAMPTZ IS NULL OR $5::TIMESTAMPTZ IS NULL)
+                    OR
+                    (dateline BETWEEN $4::TIMESTAMPTZ AND $5::TIMESTAMPTZ)
+                )"#,
+        )
+        .bind(&category_id)
+        .bind(&keyword)
+        .bind(&is_del)
+        .bind(&start)
+        .bind(&end)
+        .fetch_one(&*self.pool)
+        .await
+        .map_err(|err| tonic::Status::internal(err.to_string()))?;
+
+        let record_total: i64 = row.get(0);
+        let page_totoal = f64::ceil(record_total as f64 / page_size as f64) as i64;
+
+        let rows = sqlx::query(
+            r#"
+        SELECT 
+            id,title,content,summary,is_del,category_id,dateline,hit FROM topics
+         WHERE 1=1
+            AND ($3::int IS NULL OR category_id = $3::int)
+            AND ($4::text IS NULL OR title ILIKE CONCAT('%',$4::text,'%'))
+            AND ($5::boolean IS NULL OR is_del = $5::boolean)
+            AND (
+                ($6::TIMESTAMPTZ IS NULL OR $7::TIMESTAMPTZ IS NULL)
+                OR
+                (dateline BETWEEN $6::TIMESTAMPTZ AND $7::TIMESTAMPTZ)
+            )
+        ORDER BY 
+            id DESC
+        LIMIT 
+            $1
+        OFFSET
+            $2
+        "#,
+        )
+        .bind(page_size)
+        .bind(offset)
+        .bind(&category_id)
+        .bind(&keyword)
+        .bind(&is_del)
+        .bind(&start)
+        .bind(&end)
+        .fetch_all(&*self.pool)
+        .await
+        .map_err(|err| tonic::Status::internal(err.to_string()))?;
+
+        let mut topics = Vec::with_capacity(rows.len());
+
+        for row in rows {
+            let dt: DateTime<Local> = row.get("dateline");
+            let dateline = dt_conver(&dt);
+            topics.push(blog_proto::Topic {
+                id: row.get("id"),
+                title: row.get("title"),
+                category_id: row.get("category_id"),
+                content: row.get("content"),
+                summary: row.get("summary"),
+                hit: row.get("hit"),
+                is_del: row.get("is_del"),
+                dateline,
+            });
+        }
+
+        Ok(tonic::Response::new(ListTopicReply {
+            page,
+            page_size,
+            topics,
+            record_total,
+            page_totoal,
+        }))
     }
 }
 
@@ -167,5 +267,12 @@ fn dt_conver(dt: &DateTime<Local>) -> Option<prost_types::Timestamp> {
         Some(dt)
     } else {
         None
+    }
+}
+
+fn tm_cover(tm: Option<prost_types::Timestamp>) -> Option<DateTime<Local>> {
+    match tm {
+        Some(tm) => Some(Local.timestamp(tm.seconds, 0)),
+        None => None,
     }
 }

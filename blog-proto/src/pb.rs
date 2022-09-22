@@ -1445,8 +1445,14 @@ pub struct ListTopicReply {
     /// 每页条数
     #[prost(int32, tag="2")]
     pub page_size: i32,
+    /// 总页数
+    #[prost(int64, tag="3")]
+    pub page_totoal: i64,
+    /// 总记录数
+    #[prost(int64, tag="4")]
+    pub record_total: i64,
     /// 文章列表
-    #[prost(message, repeated, tag="3")]
+    #[prost(message, repeated, tag="5")]
     pub topics: ::prost::alloc::vec::Vec<Topic>,
 }
 /// -- 删除/恢复文章
