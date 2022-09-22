@@ -1469,6 +1469,9 @@ pub struct GetTopicRequest {
     pub id: i64,
     #[prost(bool, optional, tag="2")]
     pub is_del: ::core::option::Option<bool>,
+    /// 是否同时增加点击量
+    #[prost(bool, optional, tag="3")]
+    pub inc_hit: ::core::option::Option<bool>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct GetTopicReply {

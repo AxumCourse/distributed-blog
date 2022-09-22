@@ -55,9 +55,39 @@ async fn test_get_topic() {
     let request = tonic::Request::new(GetTopicRequest {
         id: 1.into(),
         is_del: None,
+        inc_hit: None,
     });
     let resp = client.get_topic(request).await.unwrap();
     let reply = resp.into_inner();
     assert!(reply.topic.is_some());
     println!("{:?}", reply.topic.unwrap().dateline);
+}
+#[tokio::test]
+async fn test_get_notexists_topic() {
+    let mut client = TopicServiceClient::connect("http://127.0.0.1:29527")
+        .await
+        .unwrap();
+    let request = tonic::Request::new(GetTopicRequest {
+        id: 1111.into(),
+        is_del: None,
+        inc_hit: None,
+    });
+    let resp = client.get_topic(request).await;
+    assert!(resp.is_err());
+}
+
+#[tokio::test]
+async fn test_get_topic_incr_hit() {
+    let mut client = TopicServiceClient::connect("http://127.0.0.1:29527")
+        .await
+        .unwrap();
+    let request = tonic::Request::new(GetTopicRequest {
+        id: 1.into(),
+        is_del: Some(false),
+        inc_hit: Some(true),
+    });
+    let resp = client.get_topic(request).await.unwrap();
+    let reply = resp.into_inner();
+    assert!(reply.topic.is_some());
+    assert!(reply.topic.unwrap().hit > 0);
 }

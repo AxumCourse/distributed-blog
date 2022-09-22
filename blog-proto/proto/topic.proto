@@ -67,6 +67,7 @@ message ToggleTopicReply {
 message GetTopicRequest {
   int64 id = 1;
   optional bool is_del = 2;
+  optional bool inc_hit = 3; // 是否同时增加点击量
 }
 message GetTopicReply { optional Topic topic = 1; }
 

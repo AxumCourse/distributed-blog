@@ -95,7 +95,21 @@ impl TopicService for Topic {
         &self,
         request: tonic::Request<GetTopicRequest>,
     ) -> Result<tonic::Response<GetTopicReply>, tonic::Status> {
-        let GetTopicRequest { id, is_del } = request.into_inner();
+        let GetTopicRequest {
+            id,
+            is_del,
+            inc_hit,
+        } = request.into_inner();
+
+        let inc_hit = inc_hit.unwrap_or(false); // 增加点击量
+        if inc_hit {
+            sqlx::query("UPDATE topics SET hit=hit+1 WHERE id=$1")
+                .bind(id)
+                .execute(&*self.pool)
+                .await
+                .map_err(|err| tonic::Status::internal(err.to_string()))?;
+        }
+
         let query = match is_del {
             Some(is_del) => sqlx::query("SELECT id,title,content,summary,is_del,category_id,dateline,hit FROM topics WHERE id=$1 AND is_del=$2")
             .bind(id).bind(is_del),
