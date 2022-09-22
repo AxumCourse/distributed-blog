@@ -6,4 +6,5 @@ members = [
    "blog-frontend",
    "blog-types",
    "admin-srv",
+   "blog-utils",
 ]
