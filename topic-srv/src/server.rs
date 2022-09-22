@@ -1,4 +1,4 @@
-use std::{ptr::NonNull, sync::Arc};
+use std::sync::Arc;
 
 use blog_proto::{
     topic_service_server::TopicService, CreateTopicReply, CreateTopicRequest, EditTopicReply,
@@ -6,7 +6,7 @@ use blog_proto::{
     ToggleTopicReply, ToggleTopicRequest,
 };
 use chrono::{DateTime, Datelike, Local, TimeZone, Timelike};
-use sqlx::{Executor, PgPool, QueryBuilder, Row};
+use sqlx::{PgPool, Row};
 
 pub struct Topic {
     pool: Arc<PgPool>,

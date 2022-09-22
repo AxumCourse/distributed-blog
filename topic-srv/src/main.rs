@@ -1,7 +1,7 @@
 use std::env;
 
 use blog_proto::topic_service_server::TopicServiceServer;
-use sqlx::{pool, PgPool};
+use sqlx::PgPool;
 
 mod server;
 #[tokio::main]
