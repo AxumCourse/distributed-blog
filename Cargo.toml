@@ -8,4 +8,5 @@ members = [
    "admin-srv",
    "blog-utils",
    "blog-backend",
+   "blog-auth",
 ]
