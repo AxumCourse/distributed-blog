@@ -6,7 +6,7 @@ use blog_proto::{
     ListAdminReply, ListAdminRequest, ToggleAdminReply, ToggleAdminRequest,
 };
 use blog_utils::password;
-use sqlx::{Executor, PgPool, Row};
+use sqlx::{PgPool, Row};
 
 pub struct Admin {
     pub pool: Arc<PgPool>,
@@ -42,7 +42,7 @@ impl AdminService for Admin {
         .fetch_one(&*self.pool)
         .await
         .map_err(|err| tonic::Status::internal(err.to_string()))?;
-        let count: i32 = row.get(0);
+        let count: i64 = row.get(0);
         Ok(tonic::Response::new(AdminExistsReply { exists: count > 0 }))
     }
     async fn get_admin(
@@ -140,7 +140,7 @@ impl AdminService for Admin {
             return Err(tonic::Status::invalid_argument("密码错误"));
         }
         let hashed_new_pwd = password::hash(&new_password).map_err(tonic::Status::internal)?;
-        let rows_affected = sqlx::query("UPDATE password=$1 WHERE id=$2 AND email=$3")
+        let rows_affected = sqlx::query("UPDATE admins SET password=$1 WHERE id=$2 AND email=$3")
             .bind(hashed_new_pwd)
             .bind(id)
             .bind(&email)
@@ -165,8 +165,8 @@ impl AdminService for Admin {
             FROM
                 admins
             WHERE 1=1
-                AND ($1::text IS NULL OR email=$1::text)
-                AND ($2::boolean IS NULL OR is_del=$2::bollean)
+                AND ($1::text IS NULL OR email ILIKE CONCAT('%',$1::text,'%'))
+                AND ($2::boolean IS NULL OR is_del=$2::boolean)
         "#,
         )
         .bind(email)
