@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css" />
+    <title>后台管理-AXUM.RS博客</title>
+</head>
+
+<body>
+    <nav class="navbar is-info" role="navigation" aria-label="main navigation">
+        <div class="navbar-brand">
+            <a class="navbar-item" href="/">
+                AXUM.RS博客
+            </a>
+        </div>
+    </nav>
+    <div class="container mt-3">
+        <div class="columns">
+            <div class="column has-background-light">
+                <aside class="menu">
+                    <p class="menu-label">
+                        分类管理
+                    </p>
+                    <ul class="menu-list">
+                        <li><a href="/m/cate">分类列表</a></li>
+                        <li><a href="/m/cate/add">添加分类</a></li>
+                    </ul>
+                    <p class="menu-label">
+                        文章管理
+                    </p>
+                    <ul class="menu-list">
+                        <li><a href="/m/topic">文章列表</a></li>
+                        <li><a href="/m/topic/add">添加文章</a></li>
+                    </ul>
+                    <p class="menu-label">
+                        管理员
+                    </p>
+                    <ul class="menu-list">
+                        <li><a href="/m/admin">管理员列表</a></li>
+                        <li><a href="/m/admin/add">添加管理员</a></li>
+                        <li><a href="/logout">退出登录</a></li>
+                    </ul>
+                </aside>
+            </div>
+            <div class="column is-four-fifths">
+                <div class="block">
+                    <h1>分类列表</h1>
+                </div>
+                {%if msg%}
+                <article class="message is-primary">
+                    <div class="message-body">
+                        {{msg}}
+                    </div>
+                </article>
+                {%endif%}
+                <div class="block">
+                    <form method="get" action="/m/cate">
+                        <div class="field has-addons">
+                            <div class="select is-small">
+                                <select name="is_del">
+                                    <option value="">全部</option>
+                                    <option value="false">未删除</option>
+                                    <option value="true">已删除</option>
+                                </select>
+                            </div>
+                            <div class="control">
+                                <input class="input is-small" type="text" name="name" placeholder="关键字" />
+                            </div>
+
+                            <div class="control">
+                                <button class="button is-small is-link">
+                                    搜索
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div>
+                    <table class="table is-striped is-hoverable is-fullwidth">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>名称</th>
+                                <th>状态</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {%for cate in cate_list %}
+                            <tr>
+                                <td>{{cate.id}}</td>
+                                <td>{{cate.name}}</td>
+                                <td>
+                                    {%if cate.is_del %}
+                                    <span class="tag is-danger">已删除</span>
+                                    {%else%}
+                                    <span class="tag is-success">未删除</span>
+                                    {%endif%}
+                                </td>
+                                <td>
+                                    <a href="/m/cate/edit/{{cate.id}}" class="button is-link is-light is-small">修改</a>
+                                    {%if cate.is_del %}
+                                    <a href="/m/cate/rest/{{cate.id}}" class="button is-info is-light is-small">恢复</a>
+                                    {%else%}
+                                    <a href="/m/cate/del/{{cate.id}}" class="button is-danger is-light is-small">删除</a>
+                                    {%endif%}
+                                </td>
+                            </tr>
+                            {%else%}
+                            <tr>
+                                <td colspan="4">没有记录</td>
+                            </tr>
+                            {%endfor%}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

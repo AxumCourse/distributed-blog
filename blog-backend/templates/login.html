@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css" />
+    <title>后台管理-AXUM.RS博客</title>
+</head>
+
+<body>
+    <div class="tile is-parent is-6 mx-auto mt-6">
+        <article class="tile is-child notification is-info">
+            <h1 class="title">登录</h1>
+            <form method="post" action="/login">
+                <div class="box">
+                    <div class="field">
+                        <label class="label">Email</label>
+                        <div class="control">
+                            <input class="input" type="email" placeholder="你的Email" name="email" required />
+                        </div>
+                    </div>
+                    <div class="field">
+                        <label class="label">密码</label>
+                        <div class="control">
+                            <input class="input" type="password" placeholder="你的密码" name="password" required />
+                        </div>
+                    </div>
+                    <div class="field">
+                        <div class="control">
+                            <button class="button is-link">登录</button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </article>
+    </div>
+</body>
+
+</html>
