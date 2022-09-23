@@ -20,3 +20,4 @@ chrono = "0.4"
 blog-proto = {path="../blog-proto"}
 blog-types = {path="../blog-types"}
 blog-utils = {path="../blog-utils"}
+blog-auth = {path="../blog-auth"}

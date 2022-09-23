@@ -2,6 +2,10 @@ use chrono::{Duration, Utc};
 use jsonwebtoken::{decode, encode, DecodingKey, EncodingKey, Header, Validation};
 use serde::{Deserialize, Serialize};
 
+mod err;
+
+pub use err::*;
+
 #[derive(Debug, Deserialize, Serialize, Default)]
 pub struct Claims {
     pub id: i32,
@@ -10,14 +14,14 @@ pub struct Claims {
     pub exp: usize,
 }
 
-pub struct Jwt<'a> {
+pub struct Jwt {
     pub secret: String,
     pub exp: i64,
-    pub iss: &'a str,
+    pub iss: String,
 }
 
-impl<'a> Jwt<'a> {
-    pub fn new(secret: String, exp: i64, iss: &'a str) -> Self {
+impl Jwt {
+    pub fn new(secret: String, exp: i64, iss: String) -> Self {
         Self { secret, exp, iss }
     }
     pub fn new_claims(&self, id: i32, email: String) -> Claims {
@@ -28,7 +32,7 @@ impl<'a> Jwt<'a> {
             exp: self.calc_claims_exp(),
         }
     }
-    pub fn new_claims_with(&self, claims: &'a Claims) -> Claims {
+    pub fn new_claims_with(&self, claims: Claims) -> Claims {
         self.new_claims(claims.id, claims.email.clone())
     }
 
@@ -38,19 +42,19 @@ impl<'a> Jwt<'a> {
     fn secret_bytes(&self) -> &[u8] {
         (&self.secret).as_bytes()
     }
-    pub fn token(&self, claims: &'a Claims) -> Result<String, String> {
+    pub fn token(&self, claims: &Claims) -> Result<String, crate::Error> {
         encode(
             &Header::default(),
             claims,
             &EncodingKey::from_secret(self.secret_bytes()),
         )
-        .map_err(|err| err.to_string())
+        .map_err(crate::Error::from)
     }
-    pub fn verify_and_get(&self, token: &'a str) -> Result<Claims, String> {
+    pub fn verify_and_get(&self, token: &str) -> Result<Claims, crate::Error> {
         let mut v = Validation::new(jsonwebtoken::Algorithm::HS256);
-        v.set_issuer(&[self.iss]);
+        v.set_issuer(&[self.iss.clone()]);
         let token_data = decode(token, &DecodingKey::from_secret(self.secret_bytes()), &v)
-            .map_err(|err| err.to_string())?;
+            .map_err(crate::Error::from)?;
         Ok(token_data.claims)
     }
 }
@@ -62,14 +66,14 @@ mod test {
     const ISS: &str = "axum.rs";
     #[test]
     fn test_gen_token() {
-        let jwt = Jwt::new(SECRET.to_string(), 120, ISS);
+        let jwt = Jwt::new(SECRET.to_string(), 120, ISS.to_string());
         let claims = jwt.new_claims(1, "team@axum.rs".to_string());
         let token = jwt.token(&claims).unwrap();
         println!("{:?}", token);
     }
     #[test]
     fn test_get_claims() {
-        let jwt = Jwt::new(SECRET.to_string(), 120, ISS);
+        let jwt = Jwt::new(SECRET.to_string(), 120, ISS.to_string());
         let token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6MSwiZW1haWwiOiJ0ZWFtQGF4dW0ucnMiLCJpc3MiOiJheHVtLnJzIiwiZXhwIjoxNjYzOTIyMDE1MDc2fQ.yOLD0aus03jTOqTWUZdBDoxSeBhUQUZpRL8_-ZcYM84";
         let claims = jwt.verify_and_get(token).unwrap();
         println!("{:?}", claims);

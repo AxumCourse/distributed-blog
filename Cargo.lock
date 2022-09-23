@@ -191,6 +191,7 @@ name = "blog-backend"
 version = "0.1.0"
 dependencies = [
  "axum",
+ "blog-auth",
  "blog-proto",
  "blog-types",
  "blog-utils",

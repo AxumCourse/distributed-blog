@@ -1,3 +1,4 @@
+use blog_auth::Jwt;
 use blog_proto::{
     admin_service_client::AdminServiceClient, category_service_client::CategoryServiceClient,
     topic_service_client::TopicServiceClient,
@@ -9,4 +10,5 @@ pub struct AppState {
     pub cate: CategoryServiceClient<tonic::transport::Channel>,
     pub topic: TopicServiceClient<tonic::transport::Channel>,
     pub admin: AdminServiceClient<tonic::transport::Channel>,
+    pub jwt: Jwt,
 }

@@ -41,7 +41,9 @@ pub async fn login(
         Some(la) => la,
         None => return Err("登录失败".to_string()),
     };
-    let cookie = format!("axum_rs_token={}", &logined_admin.email);
+    let claims = state.jwt.new_claims(logined_admin.id, logined_admin.email);
+    let token = state.jwt.token(&claims).map_err(|err| err.to_string())?;
+    let cookie = format!("axum_rs_token={}", &token);
     Ok(redirect_with_cookie("/m/cate", Some(&cookie)))
 }
 

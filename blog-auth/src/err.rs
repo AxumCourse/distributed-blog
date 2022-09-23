@@ -11,7 +11,7 @@ pub enum Kind {
 #[derive(Debug)]
 pub struct Error {
     pub kind: Kind,
-    pub message: Option<String>,
+    pub message: String,
     pub cause: Option<Box<dyn std::error::Error>>,
 }
 impl std::fmt::Display for Error {
@@ -30,7 +30,7 @@ impl From<jsonwebtoken::errors::Error> for Error {
                 ErrorKind::ExpiredSignature => Kind::Expired,
                 _ => Kind::Generate,
             },
-            message: None,
+            message: e.to_string(),
             cause: Some(Box::new(e)),
         }
     }
